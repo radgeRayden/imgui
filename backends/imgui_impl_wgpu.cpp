@@ -267,26 +267,16 @@ static WGPUProgrammableStageDescriptor ImGui_ImplWGPU_CreateShaderModule(const c
 {
     ImGui_ImplWGPU_Data* bd = ImGui_ImplWGPU_GetBackendData();
 
-#ifdef IMGUI_IMPL_WEBGPU_BACKEND_DAWN
     WGPUShaderSourceWGSL wgsl_desc = {};
     wgsl_desc.chain.sType = WGPUSType_ShaderSourceWGSL;
     wgsl_desc.code = { wgsl_source, WGPU_STRLEN };
-#else
-    WGPUShaderModuleWGSLDescriptor wgsl_desc = {};
-    wgsl_desc.chain.sType = WGPUSType_ShaderModuleWGSLDescriptor;
-    wgsl_desc.code = wgsl_source;
-#endif
 
     WGPUShaderModuleDescriptor desc = {};
     desc.nextInChain = reinterpret_cast<WGPUChainedStruct*>(&wgsl_desc);
 
     WGPUProgrammableStageDescriptor stage_desc = {};
     stage_desc.module = wgpuDeviceCreateShaderModule(bd->wgpuDevice, &desc);
-#ifdef IMGUI_IMPL_WEBGPU_BACKEND_DAWN
     stage_desc.entryPoint = { "main", WGPU_STRLEN };
-#else
-    stage_desc.entryPoint = "main";
-#endif
     return stage_desc;
 }
 
@@ -539,11 +529,7 @@ static void ImGui_ImplWGPU_CreateFontsTexture()
     // Upload texture to graphics system
     {
         WGPUTextureDescriptor tex_desc = {};
-#ifdef IMGUI_IMPL_WEBGPU_BACKEND_DAWN
         tex_desc.label = { "Dear ImGui Font Texture", WGPU_STRLEN };
-#else
-        tex_desc.label = "Dear ImGui Font Texture";
-#endif
         tex_desc.dimension = WGPUTextureDimension_2D;
         tex_desc.size.width = width;
         tex_desc.size.height = height;
@@ -567,12 +553,12 @@ static void ImGui_ImplWGPU_CreateFontsTexture()
 
     // Upload texture data
     {
-        WGPUImageCopyTexture dst_view = {};
+        WGPUTexelCopyTextureInfo dst_view = {};
         dst_view.texture = bd->renderResources.FontTexture;
         dst_view.mipLevel = 0;
         dst_view.origin = { 0, 0, 0 };
         dst_view.aspect = WGPUTextureAspect_All;
-        WGPUTextureDataLayout layout = {};
+        WGPUTexelCopyBufferLayout layout = {};
         layout.offset = 0;
         layout.bytesPerRow = width * size_pp;
         layout.rowsPerImage = height;
@@ -714,11 +700,7 @@ bool ImGui_ImplWGPU_CreateDeviceObjects()
     // Create depth-stencil State
     WGPUDepthStencilState depth_stencil_state = {};
     depth_stencil_state.format = bd->depthStencilFormat;
-#ifdef IMGUI_IMPL_WEBGPU_BACKEND_DAWN
     depth_stencil_state.depthWriteEnabled = WGPUOptionalBool_False;
-#else
-    depth_stencil_state.depthWriteEnabled = false;
-#endif
     depth_stencil_state.depthCompare = WGPUCompareFunction_Always;
     depth_stencil_state.stencilFront.compare = WGPUCompareFunction_Always;
     depth_stencil_state.stencilFront.failOp = WGPUStencilOperation_Keep;
